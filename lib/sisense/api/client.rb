@@ -43,8 +43,8 @@ module Sisense
         request :patch, path, params
       end
 
-      def delete(path)
-        request :delete, path
+      def delete(path, params: [])
+        request :delete, path, params
       end
 
       def parsed_response(response, object_class:)
@@ -68,10 +68,16 @@ module Sisense
         response_body.is_a?(Array)
       end
 
-      def request(method, path, params = {})
+      def request(method, path, params)
         case method
         when :get
           request = VERB_MAP[method].new(encode_path(path, params), headers)
+        when :delete
+          request = if params.count.positive?
+                      VERB_MAP[method].new(encode_path(path, params), headers)
+                    else
+                      VERB_MAP[method].new(encode_path(path), headers)
+                    end
         else
           request = VERB_MAP[method].new(encode_path(path), headers)
           request.body = parameterize(params).to_json
@@ -107,7 +113,7 @@ module Sisense
 
       def encode_path(path, params = nil)
         encoded_path = encode_path_segments(path)
-        return encoded_path if params.nil?
+        return encoded_path if params.nil? || params.count === 0 # may not need this count check
 
         encoded_params = URI.encode_www_form(params)
         uri = URI::HTTP.build(path: encoded_path, query: encoded_params)
