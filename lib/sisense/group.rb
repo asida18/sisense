@@ -20,6 +20,12 @@ module Sisense
       api_client.parsed_response(response, object_class: self)
     end
 
+    def self.create_bulk(params:)
+      path = resource_base_path + '/bulk'
+      response = api_client.post(path, params: params)
+      api_client.parsed_response(response, object_class: self)
+    end
+
     def self.update(id:, params:)
       path = [resource_base_path(use_legacy_api: true), id].join("/")
       response = api_client.put(path, params: params)
